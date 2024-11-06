@@ -21,8 +21,13 @@ SOFTWARE.
 */
 package main
 
-import "github.com/miyamo2/kubectl-hello_world/cmd"
+import (
+	"github.com/miyamo2/kubectl-hello_world/cmd"
+	"k8s.io/cli-runtime/pkg/genericiooptions"
+	"os"
+)
 
 func main() {
-	cmd.Execute()
+	root := cmd.NewCmdHelloWorld(genericiooptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr})
+	root.Execute()
 }

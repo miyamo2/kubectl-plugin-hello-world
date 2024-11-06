@@ -24,27 +24,77 @@ package cmd
 import (
 	"fmt"
 	"github.com/spf13/cobra"
-	"k8s.io/klog"
+	"k8s.io/cli-runtime/pkg/genericiooptions"
+	"k8s.io/kubectl/pkg/cmd/util"
 )
 
-// helloWorldCmd represents the base command when called without any subcommands
-var helloWorldCmd = &cobra.Command{
-	Use:   "hello_world",
-	Short: "Prints 'Hello, World!'",
-	Long:  `Prints 'Hello, World!'`,
-	RunE: func(cmd *cobra.Command, args []string) (err error) {
-		if len(args) > 0 {
-			return fmt.Errorf("unknown argments: %+v", args)
-		}
-		cmd.Print("Hello, World!\n")
-		return
-	},
+// helloWorldExample is an example of how to use the helloWorld command.
+var helloWorldExample = `
+# Prints 'Hello, World!'
+kubectl hello_world`
+
+// HelloWorldOptions provides information required to print 'Hello, World!'.
+type HelloWorldOptions struct {
+	printFunc func(i ...interface{})
+	args      []string
+	genericiooptions.IOStreams
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the helloWorldCmd.
-func Execute() {
-	if err := helloWorldCmd.Execute(); err != nil {
-		klog.Exit(err.Error())
+// NewHelloWorldOptions provides an instance of HelloWorldOptions with default values.
+func NewHelloWorldOptions(streams genericiooptions.IOStreams) *HelloWorldOptions {
+	return &HelloWorldOptions{
+		IOStreams: streams,
 	}
+}
+
+// NewCmdHelloWorld provides a cobra command wrapping HelloWorldOptions.
+func NewCmdHelloWorld(streams genericiooptions.IOStreams) *cobra.Command {
+	o := NewHelloWorldOptions(streams)
+	cmd := &cobra.Command{
+		Use:          "hello_world [flags]",
+		Short:        "Prints 'Hello, World!'",
+		Example:      helloWorldExample,
+		SilenceUsage: true,
+		Annotations: map[string]string{
+			cobra.CommandDisplayNameAnnotation: "kubectl hello_world",
+		},
+		Run: func(cmd *cobra.Command, args []string) {
+			if err := o.Complete(cmd, args); err != nil {
+				util.CheckErr(err)
+				return
+			}
+			if err := o.Validate(); err != nil {
+				util.CheckErr(err)
+				return
+			}
+			util.CheckErr(o.Run())
+		},
+	}
+	cmd.SetIn(streams.In)
+	cmd.SetOut(streams.Out)
+	cmd.SetErr(streams.ErrOut)
+
+	return cmd
+}
+
+// Complete completes all the required options
+func (o *HelloWorldOptions) Complete(cmd *cobra.Command, args []string) error {
+	o.args = args
+	o.printFunc = cmd.Print
+
+	return nil
+}
+
+// Validate validates the provided options
+func (o *HelloWorldOptions) Validate() error {
+	if len(o.args) > 0 {
+		return fmt.Errorf("unknown argments: %+v", o.args)
+	}
+	return nil
+}
+
+// Run prints 'Hello, World!'
+func (o *HelloWorldOptions) Run() error {
+	o.printFunc("Hello, World!\n")
+	return nil
 }
