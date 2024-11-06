@@ -25,7 +25,6 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"k8s.io/cli-runtime/pkg/genericiooptions"
-	"k8s.io/kubectl/pkg/cmd/util"
 )
 
 // helloWorldExample is an example of how to use the helloWorld command.
@@ -58,16 +57,14 @@ func NewCmdHelloWorld(streams genericiooptions.IOStreams) *cobra.Command {
 		Annotations: map[string]string{
 			cobra.CommandDisplayNameAnnotation: "kubectl hello_world",
 		},
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := o.Complete(cmd, args); err != nil {
-				util.CheckErr(err)
-				return
+				return err
 			}
 			if err := o.Validate(); err != nil {
-				util.CheckErr(err)
-				return
+				return err
 			}
-			util.CheckErr(o.Run())
+			return o.Run()
 		},
 	}
 	cmd.SetIn(streams.In)

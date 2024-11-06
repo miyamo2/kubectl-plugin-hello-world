@@ -24,10 +24,14 @@ package main
 import (
 	"github.com/miyamo2/kubectl-hello_world/cmd"
 	"k8s.io/cli-runtime/pkg/genericiooptions"
+	"k8s.io/component-base/cli"
+	"k8s.io/kubectl/pkg/cmd/util"
 	"os"
 )
 
 func main() {
 	root := cmd.NewCmdHelloWorld(genericiooptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr})
-	root.Execute()
+	if err := cli.RunNoErrOutput(root); err != nil {
+		util.CheckErr(err)
+	}
 }
