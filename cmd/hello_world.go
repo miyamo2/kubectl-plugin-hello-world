@@ -34,8 +34,7 @@ kubectl hello_world`
 
 // HelloWorldOptions provides information required to print 'Hello, World!'.
 type HelloWorldOptions struct {
-	printFunc func(i ...interface{})
-	args      []string
+	args []string
 	genericiooptions.IOStreams
 }
 
@@ -58,13 +57,13 @@ func NewCmdHelloWorld(streams genericiooptions.IOStreams) *cobra.Command {
 			cobra.CommandDisplayNameAnnotation: "kubectl hello_world",
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := o.Complete(cmd, args); err != nil {
+			if err := o.Complete(args); err != nil {
 				return err
 			}
 			if err := o.Validate(); err != nil {
 				return err
 			}
-			return o.Run()
+			return o.Run(cmd)
 		},
 	}
 	cmd.SetIn(streams.In)
@@ -75,10 +74,8 @@ func NewCmdHelloWorld(streams genericiooptions.IOStreams) *cobra.Command {
 }
 
 // Complete completes all the required options
-func (o *HelloWorldOptions) Complete(cmd *cobra.Command, args []string) error {
+func (o *HelloWorldOptions) Complete(args []string) error {
 	o.args = args
-	o.printFunc = cmd.Print
-
 	return nil
 }
 
@@ -91,7 +88,7 @@ func (o *HelloWorldOptions) Validate() error {
 }
 
 // Run prints 'Hello, World!'
-func (o *HelloWorldOptions) Run() error {
-	o.printFunc("Hello, World!\n")
+func (o *HelloWorldOptions) Run(cmd *cobra.Command) error {
+	cmd.Printf("Hello, World!\n")
 	return nil
 }
